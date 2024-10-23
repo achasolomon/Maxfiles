@@ -7,6 +7,8 @@ export interface TooltipProps {
   export interface TopbarProps {
     onSidebarToggle: () => void;
     isSidebarCollapsed: boolean;
+    isMobile: boolean;
+
   }
   
   export interface SidebarProps {

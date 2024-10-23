@@ -4,6 +4,9 @@ import { Link, useLocation } from 'react-router-dom';
 
 interface SidebarProps {
   isCollapsed: boolean;
+  isMobile: boolean;
+  isMobileOpen: boolean;
+  onSidebarToggle?: () => void;
 }
 
 interface MenuItem {
@@ -12,7 +15,12 @@ interface MenuItem {
   color: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+  isCollapsed, 
+  isMobile,
+  isMobileOpen, 
+  onSidebarToggle 
+}) => {
   const location = useLocation();
   const [activeItem, setActiveItem] = useState('Dashboard');
 
@@ -25,72 +33,76 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     { name: 'Unindexed Files', icon: DocumentIcon, color: 'text-gray-500' },
   ];
 
+  const sidebarClasses = `
+    fixed top-0 left-0 h-screen
+    ${isMobile 
+      ? `${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} w-64`
+      : `${isCollapsed ? 'w-16' : 'w-64'} translate-x-0`
+    }
+    bg-gray-800 transition-all duration-300 ease-in-out
+    flex flex-col z-30
+  `;
+
   return (
-    <div
-      className={`
-        ${isCollapsed ? 'w-16' : 'w-56'}
-        bg-gray-800 h-screen transition-all duration-700 ease-in-out
-        flex flex-col items-center justify-start
-      `}
-    >
-      <div className="flex items-center justify-center bg-white border-r-2 border-gray relative h-18 w-full">
-        {!isCollapsed ? (
-          <h2 className="text-white text-4xl font-semibold">
+    <div className={sidebarClasses}>
+      {/* Logo */}
+      <div className="flex items-center justify-center h-16 bg-gray-900">
+        {(!isCollapsed || isMobile) ? (
+          <h2 className="text-2xl font-semibold">
             <span className="text-indigo-400 font-sarabun">Max</span>
             <span className="text-yellow-500 font-sarabun">Files</span>
           </h2>
         ) : (
-          <span className="text-[#333547] text-xl font-semibold">MF</span>
+          <span className="text-indigo-400 text-xl font-bold">MF</span>
         )}
       </div>
 
-      <nav className="mt-5 w-full px-2 font-sarabun">
-        <div className="space-y-1 w-full">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeItem === item.name;
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto px-2 py-4">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeItem === item.name;
 
-            return (
-              <div key={item.name} className="relative group w-full">
-                <Link
-                  to="#"
-                  onClick={() => setActiveItem(item.name)}
-                  className={`
-                    ${isActive ? 'bg-[#3e444d] text-[#b4c9de]' : 'text-gray-300 hover:text-[#b4c9de]'}
-                    group flex items-center px-2 py-3 rounded-md transition-all duration-500
-                  `}
-                >
-                  <Icon
-                    className={`
-                      transform transition-transform duration-500 ease-in-out 
-                      ${isActive ? 'scale-110' : 'scale-100'}
-                      h-6 w-6 ${item.color} ${isCollapsed ? 'mx-auto' : 'mr-3'}
-                      group-hover:text-[#b4c9de]
-                    `}
-                  />
-                  <span
-                    className={`
-                      ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'}
-                      transition-all duration-700 ease-in-out
-                      text-sm font-sarabun whitespace-nowrap
-                    `}
-                  >
-                    {item.name}
-                  </span>
-                </Link>
+          return (
+            <div key={item.name} className="relative group mb-1">
+              <Link
+                to="#"
+                onClick={() => setActiveItem(item.name)}
+                className={`
+                  flex items-center px-2 py-2 rounded-md
+                  ${isActive ? 'bg-gray-900 text-white' : 'text-gray-300  hover:text-gray-500'}
+                  transition-all duration-200
+                `}
+              >
+                <Icon className={`
+                  h-6 w-6 
+                  ${isActive ? 'text-white' : item.color}
+                  ${isCollapsed && !isMobile ? 'mx-auto' : 'mr-3'}
+                `} />
+                
+                <span className={`
+                  text-sm font-medium
+                  ${isCollapsed && !isMobile ? 'hidden' : 'block'}
+                `}>
+                  {item.name}
+                </span>
+              </Link>
 
-                {/* Tooltip: Display only when sidebar is collapsed */}
-                {isCollapsed && (
-                  <div
-                    className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-800 text-white text-base shadow-lg min-w-max z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  >
-                    {item.name}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+              {/* Tooltip */}
+              {isCollapsed && !isMobile && (
+                <div className="
+                  absolute left-full ml-2 px-2 py-1
+                  bg-gray-900 text-white text-sm rounded
+                  opacity-0 group-hover:opacity-100
+                  pointer-events-none transition-opacity
+                  whitespace-nowrap z-50
+                ">
+                  {item.name}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </nav>
     </div>
   );
